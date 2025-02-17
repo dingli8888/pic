@@ -2,19 +2,7 @@
 import React from "react";
 import "./devicon.min.css";
 import {
-  Listbox,
-  Divider,
-  ListboxItem,
-  Chip,
-  ScrollShadow,
-  Avatar,
-  Image,
-  Navbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-  Link,
-  Button,
+  Spinner,
 } from "@nextui-org/react";
 
 export const ImageEditor = (props) => {
@@ -28,11 +16,12 @@ export const ImageEditor = (props) => {
     icon,
     devicon,
     font,
+    fontSizeValue,
+    authorFontSizeValue,
     color,
     logoPosition,
   } = props.propertyInfo;
 
- 
   const getImageInfo = () => {
     return props.message.url
       ? props.message
@@ -45,14 +34,20 @@ export const ImageEditor = (props) => {
         };
   };
 
-  
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    if(props.message.url != null) {
+      setIsLoading(true);
+    }
+  }, [props.message.url]);
 
   const getTitle = () => {
-      return title;
+    return title;
   };
 
   const getAuthor = () => {
-      return author;
+    return author;
   };
 
   const getIcon = () => {
@@ -62,16 +57,18 @@ export const ImageEditor = (props) => {
           <i className={`devicon-${devicon} text-white dev-icon text-4xl`}></i>
         </div>
       );
-    } else {
+    } else if (icon.length > 0) {
       return (
         <div className=" ">
           <img
             src={icon}
             alt="img"
-            className="w-12 h-12 m-2 rounded-full bg-white border-2 border-white"
+            className="w-12 h-12 m-2 rounded-full"
           />
         </div>
       );
+    } else {
+      return "";
     }
   };
 
@@ -79,16 +76,22 @@ export const ImageEditor = (props) => {
 
   return (
     <div className="max-h-screen relative flex group rounded-3xl">
-      <div style={{ maxHeight: "90vh" }} className={aspect}>
+      <div
+        style={{ maxHeight: "90vh" }}
+        className={aspect == "" ? "aspect-[16/9]" : aspect}
+      >
         <img
           src={getImageInfo().url && getImageInfo().url}
           alt="Image"
           className={"rounded-md object-cover h-full w-full"}
+          onLoad={() => setIsLoading(false)}
         />
       </div>
 
       <div
-        style={{ backgroundColor: color + blurTrans }}
+        style={{
+          backgroundColor: color == "" ? "#1F293799" : color + blurTrans,
+        }}
         className={"absolute top-0 right-0 left-0 rounded-md h-full " + blur}
       >
         <button className="absolute  top-2 right-2 cursor-pointer">
@@ -101,9 +104,9 @@ export const ImageEditor = (props) => {
           >
             <path
               stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
               d="m16 10 3-3m0 0-3-3m3 3H5v3m3 4-3 3m0 0 3 3m-3-3h14v-3"
             />
           </svg>
@@ -118,6 +121,7 @@ export const ImageEditor = (props) => {
                   " leading-tight text-center text-5xl font-bold  text-white " +
                   font
                 }
+                style={{ fontSize: `${fontSizeValue}px` }}
               >
                 {getTitle()}
               </h1>
@@ -126,6 +130,7 @@ export const ImageEditor = (props) => {
                   className={
                     "text-xl font-semibold text-left text-white " + font
                   }
+                  style={{ fontSize: `${authorFontSizeValue}px` }}
                 >
                   {getAuthor()}
                 </h2>
@@ -137,6 +142,8 @@ export const ImageEditor = (props) => {
         <div className={"absolute " + logoPosition}>
           {logoPosition != "default" && getIcon()}
         </div>
+
+        {isLoading && <Spinner className={"absolute bottom-8 left-8"} />}
       </div>
 
       <div className="absolute  bottom-4 right-4 opacity-80">
@@ -157,7 +164,8 @@ export const ImageEditor = (props) => {
           </a>
 
           <a
-            href="https://unsplash.com/?utm_source=https://picprose.pixpark.net&utm_medium=referral"
+            href="https://unsplash.com/?utm_source=PicProse&utm_medium=referral"
+            target="_blank"
             className="text-sm text-white mx-2"
           >
             Unsplash

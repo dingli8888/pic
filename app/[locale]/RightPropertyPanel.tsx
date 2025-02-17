@@ -40,37 +40,65 @@ import { BottomLeftIcon } from "./icons/BottomLeftIcon";
 import { MiddleIcon } from "./icons/MiddleIcon";
 import { BottomRightIcon } from "./icons/BottomRightIcon";
 import { TopRightIcon } from "./icons/TopRightIcon";
+import { config } from "@/config";
+import { useTranslations } from "next-intl";
 
 export const RightPropertyPanel = (props) => {
-  const titleArr = [
-    "海内存知己, 天涯若比邻",
-    "星垂平野阔, 月涌大江流",
-    "大漠孤烟直, 长河落日圆",
-  ];
+  const titleArr = config.title;
 
   const [titleValue, setTitleValue] = React.useState(
-    titleArr[Math.floor(Math.random() * 3)]
+    titleArr[Math.floor(Math.random() * 4)]
   );
-  const [subTitleValue, setSubTitleValue] = React.useState("");
-  const [authorValue, setAuthorValue] = React.useState("@PicProse");
-  const [fontValue, setFontValue] = React.useState("font-anke");
-  const [iconValue, setIconValue] = React.useState("");
-  const [backColor, setBackColor] = React.useState("#1F2937");
-  const [backBlurLevel, setBackBlurLevel] = React.useState(60);
+  const [subTitleValue, setSubTitleValue] = React.useState(config.subTitle);
+  const [authorValue, setAuthorValue] = React.useState(config.author);
+  const [fontValue, setFontValue] = React.useState(config.font);
+  const [fontSizeValue, setFontSizeValue] = React.useState<SliderValue>(config.fontSize);
+  const [authorFontSizeValue, setAuthorFontSizeValue] = React.useState<SliderValue>(config.authorFontSize);
+  const [iconValue, setIconValue] = React.useState(config.icon);
+  const [backColor, setBackColor] = React.useState(config.backColor);
+  const [backBlurLevel, setBackBlurLevel] = React.useState(
+    config.backBlurLevel
+  );
   const [deviconValue, setDevIconValue] = React.useState<Selection>(
-    new Set(["css3-plain"])
+    new Set(config.deviconValue)
   );
-  const [aspectValue, setAspectValue] = React.useState("aspect-[16/9]");
-  const [blurValue, setBlurValue] = React.useState<SliderValue>(0);
-  const [blurTransValue, setBlurTransValue] = React.useState<SliderValue>(60);
+  const [aspectValue, setAspectValue] = React.useState(config.aspect);
+  const [blurValue, setBlurValue] = React.useState<SliderValue>(config.blur);
+  const [blurTransValue, setBlurTransValue] = React.useState<SliderValue>(
+    config.blurTrans
+  );
   const inputRef = React.useRef(null);
-  const [logoPosition, setLogoPosition] = React.useState("default");
-
+  const inputFontRef = React.useRef(null);
+  const [logoPosition, setLogoPosition] = React.useState(config.logoPosition);
+  const t = useTranslations("RightPropertyPanel");
   const handleFileChange = (event) => {
     if (event.target.files[0] != null) {
       const file = URL.createObjectURL(event.target.files[0]);
       setIconValue(file);
       setDevIconValue(new Set([""]));
+    }
+  };
+  const loadFont = (fontName: string, fontUrl: string) => {
+    const font = new FontFace(fontName, `url(${fontUrl})`);
+    font
+      .load()
+      .then(() => {
+        document.fonts.add(font);
+        document.documentElement.style.setProperty("--font-custom", fontName);
+        // document.body.style.fontFamily = fontName
+      })
+      .catch((error) => {
+        console.error("Font loading failed:", error);
+      });
+  };
+  const handleFontFileChange = (event) => {
+    if (event.target.files[0] != null) {
+      const file = URL.createObjectURL(event.target.files[0]);
+      // 使用时加载字体
+      loadFont("--font-custom", file);
+      setFontValue("font-custom");
+      // setIconValue(file)
+      // setDevIconValue(new Set(['']))
     }
   };
 
@@ -90,6 +118,8 @@ export const RightPropertyPanel = (props) => {
 
   const [propertyInfo, setPropertyInfo] = React.useState({
     font: "",
+    fontSizeValue: "",
+    authorFontSizeValue:"",
     title: "",
     subTitle: "",
     author: "",
@@ -133,12 +163,31 @@ export const RightPropertyPanel = (props) => {
   React.useEffect(() => {
     setPropertyInfo((preValue) => ({
       ...preValue,
+      fontSizeValue: fontSizeValue,
+    }));
+  }, [fontSizeValue]);
+
+  React.useEffect(() => {
+    setPropertyInfo((preValue) => ({
+      ...preValue,
+      authorFontSizeValue: authorFontSizeValue,
+    }));
+  }, [authorFontSizeValue]);
+
+
+  React.useEffect(() => {
+    setPropertyInfo((preValue) => ({
+      ...preValue,
       logoPosition: logoPosition,
     }));
   }, [logoPosition]);
 
   React.useEffect(() => {
-    const icon = Array.from(deviconValue)[0].toString();
+    var icon = "";
+    if (deviconValue.size > 0) {
+      icon = Array.from(deviconValue)[0].toString();
+    }
+
     setPropertyInfo((preValue) => ({
       ...preValue,
       devicon: icon,
@@ -280,7 +329,9 @@ export const RightPropertyPanel = (props) => {
           }}
         >
           <NavbarBrand>
-            <p className="text-gray-350 font-bold text-inherit">参数</p>
+            <p className="text-gray-350 font-bold text-inherit">
+              {t("property")}
+            </p>
           </NavbarBrand>
 
           <NavbarContent justify="end">
@@ -290,7 +341,7 @@ export const RightPropertyPanel = (props) => {
                 color="primary"
                 variant="flat"
                 target="_blank"
-                href="https://github.com/gezhaoyou/picprose"
+                href="https://github.com/jaaronkot/picprose"
               >
                 <i
                   className={`devicon-github-plain text-[#2F6EE7] dev-icon text-xl`}
@@ -303,7 +354,7 @@ export const RightPropertyPanel = (props) => {
       </div>
       <div className="flex-grow overflow-y-scroll overflow-x-hidden justify-center flex flex-wrap px-4">
         <Select
-          label="比例"
+          label={t("aspect")}
           className="max-w-xs py-2"
           defaultSelectedKeys={["aspect-[16/9]"]}
           onChange={handleAspectSelectionChange}
@@ -328,61 +379,15 @@ export const RightPropertyPanel = (props) => {
           <div className="w-4/5">
             <Input
               type="url"
-              label="遮罩颜色"
-              value={backColor.replace("#", "")}
-              placeholder={backColor.replace("#", "")}
-              startContent={
-                <div className="pointer-events-none flex items-center">
-                  <span className="text-default-400 text-small">#</span>
-                </div>
-              }
+              label={t("mask")}
+              value={backColor}
+              placeholder={backColor}
             />
           </div>
           <div className="flex-grow" />
-          <div className="w-1/6 ml-2 mt-1">
-            <Dropdown>
-              <DropdownTrigger>
-                <Button
-                  isIconOnly
-                  color="primary"
-                  variant="bordered"
-                  size="lg"
-                  style={backStyle}
-                ></Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                aria-label="Single selection example"
-                variant="flat"
-                disallowEmptySelection
-                selectionMode="single"
-              >
-                <DropdownItem key="text">
-                  <div className="m-2">
-                    <CirclePicker
-                      colors={[
-                        "#1f2937",
-                        "#e91e63",
-                        "#9c27b0",
-                        "#673ab7",
-                        "#3f51b5",
-                        "#2196f3",
-                        "#03a9f4",
-                        "#00bcd4",
-                        "#009688",
-                        "#4caf50",
-                        "#8bc34a",
-                        "#cddc39",
-                      ]}
-                      onChangeComplete={handleColorChangeComplete}
-                    />
-                  </div>
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </div>
         </div>
         <Slider
-          label="透明度"
+          label={t("transparence")}
           value={blurTransValue}
           onChange={setBlurTransValue}
           size="sm"
@@ -399,23 +404,75 @@ export const RightPropertyPanel = (props) => {
         /> */}
 
         <Divider />
-        <Select
-          label="字体"
-          className="max-w-xs py-2"
-          onChange={onFontSelectChange}
-          defaultSelectedKeys={["font-anke"]}
-        >
-          {font_list.map((font) => (
-            <SelectItem key={font.value} value={font.value}>
-              {font.label}
-            </SelectItem>
-          ))}
-        </Select>
+        <div className="flex w-full py-2">
+          <div className="w-4/5">
+            <Select
+              label={t("font")}
+              onChange={onFontSelectChange}
+              defaultSelectedKeys={["font-anke"]}
+            >
+              {font_list.map((font) => (
+                <SelectItem key={font.value} value={font.value}>
+                  {font.label}
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
+          <div className="flex-grow" />
+          <div className="w-1/6 ml-2 mt-1">
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleFontFileChange}
+              ref={inputFontRef}
+            />
+            <Button
+              isIconOnly
+              color="primary"
+              variant="flat"
+              size="lg"
+              onClick={() => inputFontRef.current.click()}
+            >
+              <svg
+                className="w-5 h-5 text-[#2F6EE7] dark:text-white"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.3"
+                  d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2M12 4v12m0-12 4 4m-4-4L8 8"
+                />
+              </svg>
+            </Button>
+          </div>
+        </div>
 
         <div className="flex w-full py-2">
           <div className="w-4/5">
-            <Select label="图标" onSelectionChange={setDevIconValue}>
-              {deviconList.map((item) => (
+            <Select
+              label={t("icon")}
+              items={deviconList}
+              onSelectionChange={setDevIconValue}
+              defaultSelectedKeys={["aarch64-plain"]}
+              renderValue={(items) => {
+                return items.map((item) => (
+                  <div key={item.key} className="flex gap-2 items-center">
+                    <i
+                      className={`devicon-${item.key} text-black dev-icon text-base`}
+                    ></i>
+                    <div className="flex flex-col">{item.data.name}</div>
+                  </div>
+                ));
+              }}
+            >
+              {(item) => (
                 <SelectItem
                   key={item.name + "-" + item.versions.font[0]}
                   textValue={item.name}
@@ -427,7 +484,7 @@ export const RightPropertyPanel = (props) => {
                     <div className="flex flex-col">{item.name}</div>
                   </div>
                 </SelectItem>
-              ))}
+              )}
             </Select>
           </div>
           <div className="flex-grow" />
@@ -446,7 +503,7 @@ export const RightPropertyPanel = (props) => {
               onClick={() => inputRef.current.click()}
             >
               <svg
-                className="w-6 h-6 text-[#2F6EE7] dark:text-white"
+                className="w-5 h-5 text-[#2F6EE7] dark:text-white"
                 aria-hidden="true"
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -456,10 +513,10 @@ export const RightPropertyPanel = (props) => {
               >
                 <path
                   stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.3"
+                  d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2M12 4v12m0-12 4 4m-4-4L8 8"
                 />
               </svg>
             </Button>
@@ -520,25 +577,47 @@ export const RightPropertyPanel = (props) => {
 
         <Divider />
         <Textarea
-          label="标题"
-          placeholder="输入标题"
+          label={t("title")}
+          placeholder={t("title_place")}
           className="max-w-xs py-2"
           value={titleValue}
           onValueChange={setTitleValue}
         />
 
+        <Slider
+          label={t("font_size")}
+          value={fontSizeValue}
+          onChange={setFontSizeValue}
+          size="sm"
+          step={1}
+          min={10}
+          max={100}
+          className="max-w-md my-2"
+      />
+
         <Input
-          label="作者"
+          label={t("author")}
           type="search"
           className="py-2"
           placeholder="输入作者"
           value={authorValue}
           onValueChange={setAuthorValue}
         />
+
+        <Slider
+          label={t("author_size")}
+          value={authorFontSizeValue}
+          onChange={setAuthorFontSizeValue}
+          size="sm"
+          step={1}
+          min={10}
+          max={100}
+          className="max-w-md my-2"
+      />
       </div>
       <Divider />
       <div className="w-full mt-4 px-4">
-        <div className="text-gray-400 text-sm">下载图像</div>
+        <div className="text-gray-400 text-sm">{t("download")}</div>
         <div className="flex justify-between my-3">
           <Button
             onClick={() => dowloadImage("jpg")}

@@ -1,13 +1,14 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = { 
-    output: 'export',
-    typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
-  },
-};
+import createNextIntlPlugin from 'next-intl/plugin';
  
-export default nextConfig;
+const withNextIntl = createNextIntlPlugin();
+ 
+ 
+const nextConfig = { 
+    typescript: {
+      ignoreBuildErrors: true,
+    },
+    reactStrictMode: false,
+};
+
+export default withNextIntl(nextConfig);
