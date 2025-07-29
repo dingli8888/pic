@@ -201,7 +201,7 @@ export const ImageEditor = ({
         // imagePosition的范围应该在合理的百分比范围内
         
         // 计算新的位置值，基于鼠标移动距离
-        const sensitivity = 1.5; // 拖拽灵敏度，增加响应速度
+        const sensitivity = 2.5; // 拖拽灵敏度，增加响应速度
         const newPosition = imagePosition + (mouseDelta * sensitivity);
         
         // 限制范围：允许从显示图片顶部(-300)到底部(300)
@@ -218,7 +218,7 @@ export const ImageEditor = ({
         setDragStartY(e.clientY);
       } else {
         // 容器或图片不存在时的fallback
-        const sensitivity = 1.5;
+        const sensitivity = 2.5;
         const newPosition = imagePosition + (mouseDelta * sensitivity);
         const boundedPosition = Math.max(-300, Math.min(300, newPosition));
         setImagePosition(boundedPosition);
